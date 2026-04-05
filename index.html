@@ -10,12 +10,23 @@
     a { color: inherit; text-decoration: none; }
     header { background: #161b22; border-bottom: 1px solid #30363d; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
     .logo { font-size: 18px; font-weight: 700; color: #58a6ff; cursor: pointer; }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .btn { padding: 6px 16px; border-radius: 6px; border: 1px solid #30363d; cursor: pointer; font-size: 14px; font-family: inherit; transition: background 0.15s; }
     .btn-primary { background: #238636; border-color: #238636; color: #fff; }
     .btn-primary:hover { background: #2ea043; }
     .btn-ghost { background: transparent; color: #e6edf3; }
     .btn-ghost:hover { background: #21262d; }
+
+    /* 语言选择器 */
+    .lang-selector { position: relative; }
+    .lang-current { background: transparent; border: 1px solid #30363d; color: #8b949e; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.15s; }
+    .lang-current:hover { border-color: #58a6ff; color: #58a6ff; }
+    .lang-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; min-width: 160px; z-index: 999; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .lang-dropdown.open { display: block; }
+    .lang-option { padding: 9px 14px; cursor: pointer; font-size: 13px; color: #c9d1d9; display: flex; align-items: center; gap: 8px; transition: background 0.1s; }
+    .lang-option:hover { background: #21262d; }
+    .lang-option.active { color: #58a6ff; background: #1c2128; }
+
     .user-info { display: flex; align-items: center; gap: 8px; }
     .avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #30363d; }
     .username { font-size: 14px; font-weight: 600; color: #e6edf3; }
@@ -35,7 +46,7 @@
     .post-detail { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 24px; margin-bottom: 24px; }
     .post-detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
     .post-detail-meta { font-size: 13px; color: #8b949e; }
-    .back-btn { margin-left: auto; font-size: 13px; color: #58a6ff; cursor: pointer; }
+    .back-btn { margin-left: auto; font-size: 13px; color: #58a6ff; cursor: pointer; white-space: nowrap; }
     .back-btn:hover { text-decoration: underline; }
     .post-detail-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; line-height: 1.4; }
     .post-detail-body { font-size: 15px; line-height: 1.8; color: #c9d1d9; white-space: pre-wrap; }
@@ -61,29 +72,42 @@
 
 <header>
   <div class="logo" onclick="showPage('home')">游戏社区</div>
-  <div class="nav-right" id="nav-right">
-    <button class="btn btn-primary" onclick="login()">GitHub 登录</button>
+  <div class="nav-right">
+    <div class="lang-selector" id="lang-selector">
+      <button class="lang-current" onclick="toggleLangMenu()" id="lang-current-btn">🌐 简体中文</button>
+      <div class="lang-dropdown" id="lang-dropdown">
+        <div class="lang-option" onclick="setLang('zh-CN')">🇨🇳 简体中文</div>
+        <div class="lang-option" onclick="setLang('zh-TW')">🇹🇼 繁體中文</div>
+        <div class="lang-option" onclick="setLang('en')">🇬🇧 English</div>
+        <div class="lang-option" onclick="setLang('pt')">🇧🇷 Português</div>
+        <div class="lang-option" onclick="setLang('ja')">🇯🇵 日本語</div>
+        <div class="lang-option" onclick="setLang('it')">🇮🇹 Italiano</div>
+      </div>
+    </div>
+    <div id="nav-right">
+      <button class="btn btn-primary" onclick="login()">GitHub 登录</button>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="page active" id="page-home">
     <div class="page-header">
-      <h1 class="page-title">最新帖子</h1>
-      <button class="btn btn-primary" onclick="showNewPostForm()">发帖</button>
+      <h1 class="page-title" id="txt-latest">最新帖子</h1>
+      <button class="btn btn-primary" onclick="showNewPostForm()" id="txt-new-post-btn">发帖</button>
     </div>
     <div class="input-box" id="new-post-form" style="display:none">
-      <h3>发新帖</h3>
-      <input id="post-title-input" type="text" placeholder="帖子标题" maxlength="100" />
-      <textarea id="post-body-input" placeholder="内容" rows="5"></textarea>
+      <h3 id="txt-new-post-title">发新帖</h3>
+      <input id="post-title-input" type="text" maxlength="100" placeholder="帖子标题" />
+      <textarea id="post-body-input" rows="5" placeholder="内容"></textarea>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-primary" onclick="submitPost()">发布</button>
-        <button class="btn btn-ghost" onclick="hideNewPostForm()">取消</button>
+        <button class="btn btn-primary" onclick="submitPost()" id="txt-publish-btn">发布</button>
+        <button class="btn btn-ghost" onclick="hideNewPostForm()" id="txt-cancel-btn">取消</button>
       </div>
     </div>
     <div id="posts-container"><div class="tip">NowLoading...少女祈祷中</div></div>
     <div id="load-more-area" style="display:none">
-      <button class="btn btn-ghost load-more-btn" onclick="loadMorePosts()">加载更多</button>
+      <button class="btn btn-ghost load-more-btn" onclick="loadMorePosts()" id="txt-load-more">加载更多</button>
     </div>
   </div>
 
@@ -97,6 +121,269 @@
 </main>
 
 <script>
+// ============================================================
+//  多语言文本
+// ============================================================
+const LANGS = {
+  'zh-CN': {
+    name: '🌐 简体中文',
+    logo: '游戏社区',
+    latest: '最新帖子',
+    newPostBtn: '发帖',
+    newPostTitle: '发新帖',
+    titlePlaceholder: '帖子标题',
+    bodyPlaceholder: '内容',
+    publish: '发布',
+    publishing: '发布中...',
+    cancel: '取消',
+    loadMore: '加载更多',
+    loading: 'NowLoading...少女祈祷中',
+    loadFail: '加载失败：',
+    login: 'GitHub 登录',
+    logout: '退出',
+    back: '← 返回列表',
+    writeComment: '写评论',
+    commentPlaceholder: '说点什么...',
+    submitComment: '提交评论',
+    submitting: '提交中...',
+    loginToComment: '登录后才能评论',
+    clickLogin: '点击登录',
+    comments: (n) => `评论 (${n})`,
+    noPost: '还没有帖子，来发第一贴吧！',
+    noBody: '（暂无正文）',
+    alertTitle: '请填写标题',
+    alertComment: '请输入评论内容',
+    postFail: '发布失败：',
+    commentFail: '评论失败：',
+    timeJustNow: '刚刚',
+    timeMin: (n) => `${n} 分钟前`,
+    timeHour: (n) => `${n} 小时前`,
+    timeDay: (n) => `${n} 天前`,
+  },
+  'zh-TW': {
+    name: '🌐 繁體中文',
+    logo: '遊戲社區',
+    latest: '最新貼文',
+    newPostBtn: '發帖',
+    newPostTitle: '發新帖',
+    titlePlaceholder: '帖子標題',
+    bodyPlaceholder: '內容',
+    publish: '發布',
+    publishing: '發布中...',
+    cancel: '取消',
+    loadMore: '載入更多',
+    loading: 'NowLoading...少女祈禱中',
+    loadFail: '載入失敗：',
+    login: 'GitHub 登入',
+    logout: '登出',
+    back: '← 返回列表',
+    writeComment: '寫評論',
+    commentPlaceholder: '說點什麼...',
+    submitComment: '提交評論',
+    submitting: '提交中...',
+    loginToComment: '登入後才能評論',
+    clickLogin: '點擊登入',
+    comments: (n) => `評論 (${n})`,
+    noPost: '還沒有帖子，來發第一貼吧！',
+    noBody: '（暫無正文）',
+    alertTitle: '請填寫標題',
+    alertComment: '請輸入評論內容',
+    postFail: '發布失敗：',
+    commentFail: '評論失敗：',
+    timeJustNow: '剛剛',
+    timeMin: (n) => `${n} 分鐘前`,
+    timeHour: (n) => `${n} 小時前`,
+    timeDay: (n) => `${n} 天前`,
+  },
+  'en': {
+    name: '🌐 English',
+    logo: 'Game Community',
+    latest: 'Latest Posts',
+    newPostBtn: 'New Post',
+    newPostTitle: 'Create a New Post',
+    titlePlaceholder: 'Post title',
+    bodyPlaceholder: 'Write your content here...',
+    publish: 'Publish',
+    publishing: 'Publishing...',
+    cancel: 'Cancel',
+    loadMore: 'Load More',
+    loading: 'Loading...',
+    loadFail: 'Failed to load: ',
+    login: 'Sign in with GitHub',
+    logout: 'Sign out',
+    back: '← Back to list',
+    writeComment: 'Write a comment',
+    commentPlaceholder: 'Share your thoughts...',
+    submitComment: 'Submit',
+    submitting: 'Submitting...',
+    loginToComment: 'Please sign in to comment',
+    clickLogin: 'Sign in',
+    comments: (n) => `Comments (${n})`,
+    noPost: 'No posts yet. Be the first to post!',
+    noBody: '(No content)',
+    alertTitle: 'Please enter a title.',
+    alertComment: 'Please enter a comment.',
+    postFail: 'Failed to publish: ',
+    commentFail: 'Failed to comment: ',
+    timeJustNow: 'just now',
+    timeMin: (n) => `${n}m ago`,
+    timeHour: (n) => `${n}h ago`,
+    timeDay: (n) => `${n}d ago`,
+  },
+  'pt': {
+    name: '🌐 Português',
+    logo: 'Comunidade',
+    latest: 'Publicações Recentes',
+    newPostBtn: 'Nova Publicação',
+    newPostTitle: 'Criar Nova Publicação',
+    titlePlaceholder: 'Título da publicação',
+    bodyPlaceholder: 'Escreva o conteúdo aqui...',
+    publish: 'Publicar',
+    publishing: 'Publicando...',
+    cancel: 'Cancelar',
+    loadMore: 'Carregar Mais',
+    loading: 'Carregando...',
+    loadFail: 'Falha ao carregar: ',
+    login: 'Entrar com GitHub',
+    logout: 'Sair',
+    back: '← Voltar à lista',
+    writeComment: 'Escrever um comentário',
+    commentPlaceholder: 'Compartilhe sua opinião...',
+    submitComment: 'Enviar',
+    submitting: 'Enviando...',
+    loginToComment: 'Faça login para comentar',
+    clickLogin: 'Entrar',
+    comments: (n) => `Comentários (${n})`,
+    noPost: 'Nenhuma publicação ainda. Seja o primeiro!',
+    noBody: '(Sem conteúdo)',
+    alertTitle: 'Por favor, insira um título.',
+    alertComment: 'Por favor, insira um comentário.',
+    postFail: 'Falha ao publicar: ',
+    commentFail: 'Falha ao comentar: ',
+    timeJustNow: 'agora mesmo',
+    timeMin: (n) => `há ${n} min`,
+    timeHour: (n) => `há ${n} h`,
+    timeDay: (n) => `há ${n} d`,
+  },
+  'ja': {
+    name: '🌐 日本語',
+    logo: 'ゲームコミュニティ',
+    latest: '最新スレッド',
+    newPostBtn: '投稿する',
+    newPostTitle: '新規投稿',
+    titlePlaceholder: 'タイトル',
+    bodyPlaceholder: '内容を入力してください',
+    publish: '投稿',
+    publishing: '投稿中...',
+    cancel: 'キャンセル',
+    loadMore: 'もっと見る',
+    loading: 'NowLoading...少女祈祷中',
+    loadFail: '読み込み失敗：',
+    login: 'GitHubでログイン',
+    logout: 'ログアウト',
+    back: '← 一覧に戻る',
+    writeComment: 'コメントを書く',
+    commentPlaceholder: 'コメントを入力...',
+    submitComment: 'コメントする',
+    submitting: '送信中...',
+    loginToComment: 'コメントするにはログインが必要です',
+    clickLogin: 'ログイン',
+    comments: (n) => `コメント (${n})`,
+    noPost: 'まだ投稿がありません。最初の投稿者になりましょう！',
+    noBody: '（本文なし）',
+    alertTitle: 'タイトルを入力してください。',
+    alertComment: 'コメントを入力してください。',
+    postFail: '投稿失敗：',
+    commentFail: 'コメント失敗：',
+    timeJustNow: 'たった今',
+    timeMin: (n) => `${n}分前`,
+    timeHour: (n) => `${n}時間前`,
+    timeDay: (n) => `${n}日前`,
+  },
+  'it': {
+    name: '🌐 Italiano',
+    logo: 'Comunità',
+    latest: 'Ultime Discussioni',
+    newPostBtn: 'Nuovo Post',
+    newPostTitle: 'Crea un Nuovo Post',
+    titlePlaceholder: 'Titolo del post',
+    bodyPlaceholder: 'Scrivi il contenuto qui...',
+    publish: 'Pubblica',
+    publishing: 'Pubblicazione...',
+    cancel: 'Annulla',
+    loadMore: 'Carica Altro',
+    loading: 'Caricamento...',
+    loadFail: 'Caricamento fallito: ',
+    login: 'Accedi con GitHub',
+    logout: 'Esci',
+    back: '← Torna alla lista',
+    writeComment: 'Scrivi un commento',
+    commentPlaceholder: 'Condividi la tua opinione...',
+    submitComment: 'Invia',
+    submitting: 'Invio...',
+    loginToComment: 'Accedi per commentare',
+    clickLogin: 'Accedi',
+    comments: (n) => `Commenti (${n})`,
+    noPost: 'Nessun post ancora. Sii il primo a pubblicare!',
+    noBody: '(Nessun contenuto)',
+    alertTitle: 'Inserisci un titolo.',
+    alertComment: 'Inserisci un commento.',
+    postFail: 'Pubblicazione fallita: ',
+    commentFail: 'Commento fallito: ',
+    timeJustNow: 'proprio ora',
+    timeMin: (n) => `${n} min fa`,
+    timeHour: (n) => `${n} ore fa`,
+    timeDay: (n) => `${n} giorni fa`,
+  },
+}
+
+// ============================================================
+//  语言状态
+// ============================================================
+let currentLang = localStorage.getItem('lang') || 'zh-CN'
+let t = LANGS[currentLang]
+
+function setLang(code) {
+  currentLang = code
+  t = LANGS[code]
+  localStorage.setItem('lang', code)
+  document.getElementById('lang-current-btn').textContent = t.name
+  document.querySelectorAll('.lang-option').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('onclick') === `setLang('${code}')`)
+  })
+  document.getElementById('lang-dropdown').classList.remove('open')
+  applyLang()
+  if (state.posts.length) renderPostList()
+}
+
+function applyLang() {
+  document.querySelector('.logo').textContent = t.logo
+  document.title = t.logo
+  const el = (id) => document.getElementById(id)
+  if (el('txt-latest'))         el('txt-latest').textContent = t.latest
+  if (el('txt-new-post-btn'))   el('txt-new-post-btn').textContent = t.newPostBtn
+  if (el('txt-new-post-title')) el('txt-new-post-title').textContent = t.newPostTitle
+  if (el('txt-publish-btn'))    el('txt-publish-btn').textContent = t.publish
+  if (el('txt-cancel-btn'))     el('txt-cancel-btn').textContent = t.cancel
+  if (el('txt-load-more'))      el('txt-load-more').textContent = t.loadMore
+  if (el('post-title-input'))   el('post-title-input').placeholder = t.titlePlaceholder
+  if (el('post-body-input'))    el('post-body-input').placeholder = t.bodyPlaceholder
+  renderNav()
+}
+
+function toggleLangMenu() {
+  document.getElementById('lang-dropdown').classList.toggle('open')
+}
+
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('lang-selector').contains(e.target)) {
+    document.getElementById('lang-dropdown').classList.remove('open')
+  }
+})
+
+// ============================================================
+//  配置
+// ============================================================
 const CONFIG = {
   owner: 'Signedinn',
   repo: 'community',
@@ -112,6 +399,9 @@ let state = {
   hasNextPage: false,
 }
 
+// ============================================================
+//  GitHub GraphQL
+// ============================================================
 async function gql(query, variables = {}) {
   const headers = { 'Content-Type': 'application/json' }
   if (state.token) headers['Authorization'] = 'bearer ' + state.token
@@ -189,13 +479,16 @@ async function apiCreateComment(discussionId, body) {
   return data.addDiscussionComment.comment
 }
 
+// ============================================================
+//  时间格式化
+// ============================================================
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr)) / 1000
-  if (diff < 60) return '刚刚'
-  if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前'
-  if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前'
-  if (diff < 2592000) return Math.floor(diff / 86400) + ' 天前'
-  return new Date(dateStr).toLocaleDateString('zh-CN')
+  if (diff < 60) return t.timeJustNow
+  if (diff < 3600) return t.timeMin(Math.floor(diff / 60))
+  if (diff < 86400) return t.timeHour(Math.floor(diff / 3600))
+  if (diff < 2592000) return t.timeDay(Math.floor(diff / 86400))
+  return new Date(dateStr).toLocaleDateString()
 }
 
 function escapeHtml(str) {
@@ -211,9 +504,9 @@ function showPage(name) {
 function renderNav() {
   const el = document.getElementById('nav-right')
   if (state.user) {
-    el.innerHTML = `<div class="user-info"><img class="avatar" src="${state.user.avatarUrl}" /><span class="username">${state.user.login}</span></div><button class="btn btn-ghost" onclick="logout()">退出</button>`
+    el.innerHTML = `<div class="user-info"><img class="avatar" src="${state.user.avatarUrl}" /><span class="username">${state.user.login}</span></div><button class="btn btn-ghost" onclick="logout()">${t.logout}</button>`
   } else {
-    el.innerHTML = `<button class="btn btn-primary" onclick="login()">GitHub 登录</button>`
+    el.innerHTML = `<button class="btn btn-primary" onclick="login()">${t.login}</button>`
   }
 }
 
@@ -225,7 +518,7 @@ function renderPostCard(post) {
       <span class="post-card-time">${timeAgo(post.createdAt)}</span>
     </div>
     <div class="post-card-title">${escapeHtml(post.title)}</div>
-    <div class="post-card-footer"><span>💬 ${post.comments.totalCount} 评论</span><span>👍 ${post.upvoteCount}</span></div>
+    <div class="post-card-footer"><span>💬 ${post.comments.totalCount}</span><span>👍 ${post.upvoteCount}</span></div>
   </div>`
 }
 
@@ -233,12 +526,14 @@ function renderPostDetail(post) {
   return `<div class="post-detail">
     <div class="post-detail-header">
       <img class="avatar" src="${post.author.avatarUrl}" />
-      <div><div style="font-size:14px;font-weight:600;color:#58a6ff">${post.author.login}</div>
-      <div class="post-detail-meta">${timeAgo(post.createdAt)} · 👍 ${post.upvoteCount}</div></div>
-      <span class="back-btn" onclick="showPage('home')">← 返回列表</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#58a6ff">${post.author.login}</div>
+        <div class="post-detail-meta">${timeAgo(post.createdAt)} · 👍 ${post.upvoteCount}</div>
+      </div>
+      <span class="back-btn" onclick="showPage('home')">${t.back}</span>
     </div>
     <div class="post-detail-title">${escapeHtml(post.title)}</div>
-    <div class="post-detail-body">${escapeHtml(post.body || '（暂无正文）')}</div>
+    <div class="post-detail-body">${escapeHtml(post.body || t.noBody)}</div>
   </div>`
 }
 
@@ -254,15 +549,16 @@ function renderComment(comment) {
 }
 
 function renderReplyBox(discussionId) {
-  if (!state.token) return `<div class="login-tip">登录后才能评论 &nbsp;<span onclick="login()">点击登录</span></div>`
-  return `<div class="input-box"><h3>写评论</h3>
-    <textarea id="comment-input" placeholder="说点什么..." rows="3"></textarea>
-    <button class="btn btn-primary" onclick="submitComment('${discussionId}')">提交评论</button>
+  if (!state.token) return `<div class="login-tip">${t.loginToComment} &nbsp;<span onclick="login()">${t.clickLogin}</span></div>`
+  return `<div class="input-box">
+    <h3>${t.writeComment}</h3>
+    <textarea id="comment-input" placeholder="${t.commentPlaceholder}" rows="3"></textarea>
+    <button class="btn btn-primary" onclick="submitComment('${discussionId}')">${t.submitComment}</button>
   </div>`
 }
 
 async function loadPosts() {
-  document.getElementById('posts-container').innerHTML = '<div class="tip">加载中...</div>'
+  document.getElementById('posts-container').innerHTML = `<div class="tip">${t.loading}</div>`
   try {
     const result = await fetchPosts()
     state.posts = result.nodes
@@ -270,7 +566,7 @@ async function loadPosts() {
     state.hasNextPage = result.pageInfo.hasNextPage
     renderPostList()
   } catch (e) {
-    document.getElementById('posts-container').innerHTML = '<div class="tip">加载失败：' + e.message + '</div>'
+    document.getElementById('posts-container').innerHTML = `<div class="tip">${t.loadFail}${e.message}</div>`
   }
 }
 
@@ -286,7 +582,7 @@ function renderPostList() {
   const container = document.getElementById('posts-container')
   container.innerHTML = state.posts.length
     ? state.posts.map(renderPostCard).join('')
-    : '<div class="empty"><div class="empty-icon">📭</div><div>还没有帖子，来发第一贴吧！</div></div>'
+    : `<div class="empty"><div class="empty-icon">📭</div><div>${t.noPost}</div></div>`
   document.getElementById('load-more-area').style.display = state.hasNextPage ? 'block' : 'none'
 }
 
@@ -305,9 +601,9 @@ function hideNewPostForm() {
 async function submitPost() {
   const title = document.getElementById('post-title-input').value.trim()
   const body = document.getElementById('post-body-input').value.trim()
-  if (!title) { alert('请填写标题'); return; }
+  if (!title) { alert(t.alertTitle); return; }
   const btn = event.target
-  btn.textContent = '发布中...'
+  btn.textContent = t.publishing
   btn.disabled = true
   try {
     const post = await apiCreatePost(title, body)
@@ -315,16 +611,16 @@ async function submitPost() {
     await loadPosts()
     openPost(post.number)
   } catch (e) {
-    alert('发布失败：' + e.message)
+    alert(t.postFail + e.message)
   } finally {
-    btn.textContent = '发布'
+    btn.textContent = t.publish
     btn.disabled = false
   }
 }
 
 async function openPost(number) {
   showPage('post')
-  document.getElementById('post-detail-container').innerHTML = '<div class="tip">加载中...</div>'
+  document.getElementById('post-detail-container').innerHTML = `<div class="tip">${t.loading}</div>`
   document.getElementById('comments-container').innerHTML = ''
   document.getElementById('reply-area').innerHTML = ''
   try {
@@ -332,35 +628,35 @@ async function openPost(number) {
     document.getElementById('post-detail-container').innerHTML = renderPostDetail(post)
     const comments = post.comments.nodes
     document.getElementById('comments-container').innerHTML =
-      '<div class="comments-title">评论 (' + comments.length + ')</div>' +
+      `<div class="comments-title">${t.comments(comments.length)}</div>` +
       comments.map(renderComment).join('')
     document.getElementById('reply-area').innerHTML = renderReplyBox(post.id)
   } catch (e) {
-    document.getElementById('post-detail-container').innerHTML = '<div class="tip">加载失败：' + e.message + '</div>'
+    document.getElementById('post-detail-container').innerHTML = `<div class="tip">${t.loadFail}${e.message}</div>`
   }
 }
 
 async function submitComment(discussionId) {
   const input = document.getElementById('comment-input')
   const body = input.value.trim()
-  if (!body) { alert('请输入评论内容'); return; }
+  if (!body) { alert(t.alertComment); return; }
   const btn = event.target
-  btn.textContent = '提交中...'
+  btn.textContent = t.submitting
   btn.disabled = true
   try {
     const comment = await apiCreateComment(discussionId, body)
     input.value = ''
     const container = document.getElementById('comments-container')
     container.innerHTML += renderComment(comment)
-    const title = container.querySelector('.comments-title')
-    if (title) {
-      const match = title.textContent.match(/\d+/)
-      if (match) title.textContent = '评论 (' + (parseInt(match[0]) + 1) + ')'
+    const titleEl = container.querySelector('.comments-title')
+    if (titleEl) {
+      const match = titleEl.textContent.match(/\d+/)
+      if (match) titleEl.textContent = t.comments(parseInt(match[0]) + 1)
     }
   } catch (e) {
-    alert('评论失败：' + e.message)
+    alert(t.commentFail + e.message)
   } finally {
-    btn.textContent = '提交评论'
+    btn.textContent = t.submitComment
     btn.disabled = false
   }
 }
@@ -380,6 +676,14 @@ function logout() {
 }
 
 async function init() {
+  // 恢复语言设置
+  document.getElementById('lang-current-btn').textContent = t.name
+  document.querySelectorAll('.lang-option').forEach(el => {
+    const code = el.getAttribute('onclick').match(/'(.+)'/)[1]
+    el.classList.toggle('active', code === currentLang)
+  })
+  applyLang()
+
   if (state.token && !state.user) {
     try {
       const data = await gql('query{viewer{login avatarUrl}}')
